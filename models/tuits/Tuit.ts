@@ -10,6 +10,7 @@ import Stats from "./Stats";
  * @property {string} tuit the content of tuit
  * @property {User} postedBy User posted the tuit
  * @property {date} postedOn the post time of tuit
+ * @property {string} video url link for video
  */
 export default interface Tuit {
      _id?: mongoose.Schema.Types.ObjectId;
@@ -17,4 +18,5 @@ export default interface Tuit {
     postedBy?: User;
     postedOn: Date;
     stats: Stats;
+    video: string;
 }

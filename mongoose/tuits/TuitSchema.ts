@@ -11,6 +11,7 @@ import Tuit from "../../models/tuits/Tuit";
  * @property {string} tuit the content of tuit
  * @property {ObjectId} postedBy the User Id who post the tuit
  * @property {date} postedOn the post time of tuit
+ * @property {string} video url for video
  */
 const TuitSchema = new mongoose.Schema<Tuit>({
 
@@ -22,8 +23,8 @@ const TuitSchema = new mongoose.Schema<Tuit>({
         retuits: {type: Number, default: 0},
         likes: {type: Number, default: 0},
         dislikes: {type: Number, default: 0}
-    }
-
+    },
+    video: {type: String, required: true}
 }, {collection: 'tuits'});
 
 export default TuitSchema;
