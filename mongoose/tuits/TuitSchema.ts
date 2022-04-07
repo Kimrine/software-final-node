@@ -24,7 +24,7 @@ const TuitSchema = new mongoose.Schema<Tuit>({
         likes: {type: Number, default: 0},
         dislikes: {type: Number, default: 0}
     },
-    video: {type: String, required: true}
+    video: {type: String, required: false}
 }, {collection: 'tuits'});
 
 export default TuitSchema;
