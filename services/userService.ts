@@ -80,4 +80,41 @@ export default class UserService{
     }
 
 
+    findUsersToFollow = async (uid: any,users:User[]): Promise<any[]>=> {
+
+        let findFollowsPromises: any[] = [];
+
+        users.forEach((user:any)=>{
+            let findFollowsPromise = UserService.followDao.findUserFollowUser(uid, user._id);
+            findFollowsPromises.push(findFollowsPromise);
+
+        })
+
+        const followUsers = await Promise.all(findFollowsPromises);
+
+        const userIds = followUsers.map((u)=>{
+            if(u){
+                return u.userFollowed.toString();
+            }
+        })
+
+        const getUsers = users.map((u:any)=>{
+            let newU = u.toObject();
+            if(userIds.indexOf(u._id.toString())>=0){
+                newU = {...newU,followedByMe: true};
+            }else{
+                newU = {...newU,followedByMe: false};
+            }
+
+
+
+            return newU;
+        })
+
+        let newUsers = getUsers.filter((user)=>user.followedByMe===false);
+        newUsers = newUsers.filter((user)=>user._id!=uid);
+
+
+        return newUsers;
+    }
 }

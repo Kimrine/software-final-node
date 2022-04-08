@@ -4,10 +4,13 @@
 import Tuit from "../models/tuits/Tuit";
 import LikeDao from "../daos/LikeDao";
 import DislikeDao from "../daos/DislikeDao";
+import FollowController from "../controllers/FollowController";
+import FollowDao from "../daos/FollowDao";
 
 export default class TuitService{
     public static tuitService: TuitService | null = null;
     private static likeDao: LikeDao = LikeDao.getInstance();
+    private static followDao: FollowDao = FollowDao.getInstance();
     private static dislikeDao: DislikeDao = DislikeDao.getInstance();
 
     /**
@@ -68,8 +71,45 @@ export default class TuitService{
             }
             return newT;
         })
+
         return getTuits;
+
     }
+
+
+    public getTuitsForFollow = async (uid:any,tuits:Tuit[]): Promise<any[]> =>{
+
+
+        const users = await TuitService.followDao.findAllUsersThatUserFollowing(uid);
+        const followingNonNullUser = users.filter(follow => follow.userFollowed);
+        const userFromFollowing = followingNonNullUser.map(follow => follow.userFollowed);
+
+        const usersId = userFromFollowing.map((u)=>{
+            if(u){
+                return u.username;
+            }
+        })
+
+
+        const getTuits =  tuits.map((t:any)=>{
+            let newT = t;
+
+            if(usersId.indexOf(t.postedBy.username)>=0){
+                newT = {...newT, canShow: true};
+            }else if(t.postedBy._id.toString()===uid.toString()) {
+                newT = {...newT, canShow: true};
+            }
+            else{
+                newT = {...newT, canShow: false};
+            }
+
+            return newT;
+        })
+        let followTuits = getTuits.filter((t)=>t.canShow===true);
+
+        return followTuits;
+    }
+
 
 
 }

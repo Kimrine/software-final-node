@@ -6,6 +6,7 @@ import FollowDao from "../daos/FollowDao";
 import {Express, Request, Response} from "express";
 import UserDao from "../daos/UserDao";
 import UserService from "../services/userService";
+import User from "../models/users/User";
 
 /**
  * @class FollowController Implements RESTful Web service API for follows resource.
@@ -49,6 +50,9 @@ export default class FollowController implements FollowControllerI {
             app.get("/api/users/:uid/followings", FollowController.followController.findAllUsersThatUserFollowing);
             app.get("/api/users/:uid/followers", FollowController.followController.findAllUsersThatFollowingUser);
             app.get("/api/follows", FollowController.followController.findAllFollow);
+            app.get("/api/users/follow/:uid/whotofollow",
+                FollowController.followController.findUserToFollow);
+
 
             app.post("/api/users/:uid1/follows/:uid2", FollowController.followController.userFollowsUser);
             app.delete("/api/users/:uid1/unfollows/:uid2", FollowController.followController.userUnfollowsUser);
@@ -216,6 +220,18 @@ export default class FollowController implements FollowControllerI {
         }catch (e){
             res.sendStatus(404);
         }
+    }
+
+    findUserToFollow = (req: Request, res: Response) => {
+
+        const uid = req.params.uid;
+
+            FollowController.userDao.findAllUsers()
+                .then(async (users:User[]) => {
+                    const newUsers = await FollowController.userSerive.findUsersToFollow(uid,users);
+                    res.json(newUsers);
+                });
+
     }
 }
 
