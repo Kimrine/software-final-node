@@ -1,4 +1,5 @@
 import {Request, Response} from "express";
+import Tuit from "../../models/tuits/Tuit";
 
 export default interface TuitControllerI {
 
@@ -16,5 +17,6 @@ export default interface TuitControllerI {
 
     deleteAllTuit(req: Request, res: Response): void;
 
+    findAllTuitsHaveMediasByUser(req: Request, res: Response): void
 
 }

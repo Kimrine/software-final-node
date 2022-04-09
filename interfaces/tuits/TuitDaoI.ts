@@ -15,4 +15,6 @@ export default interface TuitDaoI {
 
     deleteAllTuit(): Promise<any>;
 
+    findAllTuitsHaveMediasByUser(uid: string): Promise<Tuit[]>
+
 };
