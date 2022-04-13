@@ -85,7 +85,13 @@ export default class TuitController implements TuitControllerI {
                 .then((tuits: Tuit[]) => res.json(tuits));
         }
     }
-
+    /**
+     * Retrieves all tuits that posted by user's following and self from the database and returns
+     * an array of tuits.
+     * @param {Request} req Represents request from client
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON arrays containing the tuit objects
+     */
     findTuitsByFollow = (req:Request,res:Response) => {
 
         // @ts-ignore

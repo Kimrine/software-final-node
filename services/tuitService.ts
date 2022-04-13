@@ -4,7 +4,6 @@
 import Tuit from "../models/tuits/Tuit";
 import LikeDao from "../daos/LikeDao";
 import DislikeDao from "../daos/DislikeDao";
-import FollowController from "../controllers/FollowController";
 import FollowDao from "../daos/FollowDao";
 
 export default class TuitService{
@@ -78,7 +77,6 @@ export default class TuitService{
 
 
     public getTuitsForFollow = async (uid:any,tuits:Tuit[]): Promise<any[]> =>{
-
 
         const users = await TuitService.followDao.findAllUsersThatUserFollowing(uid);
         const followingNonNullUser = users.filter(follow => follow.userFollowed);

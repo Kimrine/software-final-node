@@ -222,6 +222,15 @@ export default class FollowController implements FollowControllerI {
         }
     }
 
+    /**
+     * Retrieves all users that user didn't follow
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is liking the tuit
+     * and the tuit being liked
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new likes that was inserted in the
+     * database
+     */
     findUserToFollow = (req: Request, res: Response) => {
 
         const uid = req.params.uid;
