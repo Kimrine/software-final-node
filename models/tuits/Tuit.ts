@@ -19,6 +19,6 @@ export default interface Tuit {
     postedBy?: User;
     postedOn: Date;
     stats: Stats;
-    image?: string;
+    image?: Array<string>;
     youtube?: string;
 }
