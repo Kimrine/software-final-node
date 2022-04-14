@@ -51,6 +51,7 @@ export default class TuitController implements TuitControllerI {
             app.put("/api/tuits/:tid", TuitController.tuitController.updateTuit);
             app.delete("/api/tuits/:tid", TuitController.tuitController.deleteTuit);
             app.delete("/api/tuits", TuitController.tuitController.deleteAllTuit);
+            app.get("/api/users/:uid/media", TuitController.tuitController.findAllTuitsHaveMediasByUser)
         }
         return TuitController.tuitController;
     }
@@ -218,6 +219,20 @@ export default class TuitController implements TuitControllerI {
         TuitController.tuitDao.deleteAllTuit()
             .then((status) => res.json(status));
 
+
+    findAllTuitsHaveMediasByUser = (req: Request, res: Response) => {
+        const uid = req.params.uid;
+        // @ts-ignore
+        const profile = req.session['profile'];
+        const userId = uid === "me" && profile ? profile._id : uid;
+        TuitController.tuitDao.findAllTuitsHaveMediasByUser(userId)
+            .then(async (tuits: Tuit[]) => {
+                const getTuits = await TuitController.tuitService
+                    .getTuitsForLikeDislikeByUser(userId, tuits);
+                res.json(getTuits)
+            });
+
+    }
 
 
 }
