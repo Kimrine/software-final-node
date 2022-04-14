@@ -94,7 +94,7 @@ export default class TuitDao implements TuitDaoI {
         );
 
     findAllTuitsHaveMediasByUser = async (uid: string): Promise<Tuit[]> =>
-        TuitModel.find({postedBy: uid, image: {$ne: null}}).populate("postedBy").exec();
+        TuitModel.find({$and: [{postedBy: uid},{$or:[{image: {$ne: null}},{youtube: {$ne: null}}]}]}).populate("postedBy").exec();
 
 }
 
