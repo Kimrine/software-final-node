@@ -25,6 +25,8 @@ import MessageController from "./controllers/MessageController";
 import AuthenticationController from "./controllers/AuthenticationController";
 import SessionController from "./controllers/SessionController";
 import DislikeController from "./controllers/DislikeController";
+import ImageController from "./controllers/ImageController";
+
 const cors = require("cors");
 const session = require("express-session");
 mongoose.connect('mongodb+srv://kimrine:kimrine123@cluster0.x1j4c.mongodb.net/final?retryWrites=true&w=majority');
@@ -60,6 +62,7 @@ const followController = FollowController.getInstance(app);
 const bookmarkController = BookmarkController.getInstance(app);
 const messageController = MessageController.getInstance(app);
 const dislikeController = DislikeController.getInstance(app);
+const imageController = ImageController.getInstance(app);
 
 app.get('/hello', (req, res) =>
     res.send('Hello World!'));
