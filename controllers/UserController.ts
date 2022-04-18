@@ -6,6 +6,8 @@ import UserDao from "../daos/UserDao";
 import UserControllerI from "../interfaces/users/UserControllerI";
 import User from "../models/users/User";
 import UserService from "../services/userService";
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 /**
  * @class UserController Implements RESTful Web service API for users resource.
@@ -149,9 +151,17 @@ export default class UserController implements UserControllerI {
     updateUser = async (req: Request, res: Response) => {
 
         let newUser = req.body;
+        let password = null;
+        if(newUser.password!==""){
+            const passwd = newUser.password;
+            password = await bcrypt.hash(passwd,saltRounds);
+        }else{
+            const user = await UserController.userDao.findUserById(newUser._id);
+            password = user.password;
+        }
 
-        const user = await UserController.userDao.findUserById(newUser._id);
-        newUser = {...newUser,password: user.password};
+
+        newUser = {...newUser,password: password};
 
 
         let update = await UserController.userDao.updateUser(newUser._id,newUser);

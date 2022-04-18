@@ -23,7 +23,8 @@ import User from "../models/users/User";
  *     <li>DELETE /api/users/:uid1/unfollows/:uid2 to record that a user
  *     no longer follows another user</li>
  *     <li> DELETE /api/users/:uid1/removesfollower/:uid2 to record that a user remove another user
- *     from his follwers
+ *     from his follwers</li>
+ *     <li> PUT
  *     * </ul>
  * @property {FollowDao} followDao Singleton DAO implementing follow CRUD operations
  * @property {FollowController} followController Singleton controller implementing
@@ -93,7 +94,7 @@ export default class FollowController implements FollowControllerI {
         // @ts-ignore
         let curUid = req.session['profile'] ?
             // @ts-ignore
-            req.session['profile']._id : req.params.uid;
+            req.session['profile']._id : uid;
 
         FollowController.followDao.findAllUsersThatFollowingUser(uid)
             .then(async follows => {
@@ -121,13 +122,13 @@ export default class FollowController implements FollowControllerI {
         let user = await FollowController.userDao.findUserByUsername(username);
         let uid = user._id;
         // @ts-ignore
-        let curUid = req.session['profile'] ?
+        let curUid = req.session['profile'] !==undefined ?
             // @ts-ignore
-            req.session['profile']._id : req.params.uid;
+            req.session['profile']._id : uid;
 
 
         FollowController.followDao.findAllUsersThatUserFollowing(uid)
-            .then(async follows => {
+            .then(async (follows) => {
                 const followingNonNullUser = follows.filter(follow => follow.userFollowed);
                 const userFromFollowing = followingNonNullUser.map(follow => follow.userFollowed);
                 const getTuits = await FollowController.userSerive
@@ -213,6 +214,7 @@ export default class FollowController implements FollowControllerI {
                 user2.followers = howManyFollowers + 1;
             }
 
+            console.log("implement user follow");
             await userDao.updateUser(uid1,user1);
             await userDao.updateUser(uid2,user2);
             res.sendStatus(200);
