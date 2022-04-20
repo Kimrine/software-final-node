@@ -39,4 +39,6 @@ export default interface User {
     dateOfBirth?: Date;
     joined: Date;
     location?: Location;
+    followings: number;
+    followers: number;
 }

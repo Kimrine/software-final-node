@@ -5,6 +5,9 @@ import {Request, Response, Express} from "express";
 import UserDao from "../daos/UserDao";
 import UserControllerI from "../interfaces/users/UserControllerI";
 import User from "../models/users/User";
+import UserService from "../services/userService";
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 /**
  * @class UserController Implements RESTful Web service API for users resource.
@@ -25,6 +28,7 @@ import User from "../models/users/User";
 export default class UserController implements UserControllerI {
 
     private static userDao: UserDao = UserDao.getInstance();
+    private static userService: UserService = UserService.getInstance();
     private static userController: UserController | null = null;
 
     /**
@@ -91,9 +95,38 @@ export default class UserController implements UserControllerI {
      * @param {Response} res Represents response to client, including the
      * body formatted as JSON containing the user that matches the user ID
      */
-    findUserByUsername = (req: Request, res: Response) =>
-        UserController.userDao.findUserByUsername(req.params.username)
-            .then((user:User)=>res.json(user));
+    findUserByUsername = async (req: Request, res: Response) => {
+
+        // @ts-ignore
+        let username = req.params.username === req.session['profile'].username && req.session['profile'] ?
+            // @ts-ignore
+            req.session['profile'].username : req.params.username;
+
+        let flag = true;
+        // @ts-ignore
+        if (req.params.username === req.session['profile'].username && req.session['profile']) {
+            flag = false;
+        }
+
+        // @ts-ignore
+        let uid1 = req.session['profile']._id;
+
+        UserController.userDao.findUserByUsername(username)
+            .then(async (user: User) => {
+
+                if (flag) {
+                    console.log(uid1+" : "+user);
+                    const newUser = await UserController.userService
+                        .getSingleFollowedUser(uid1,user);
+
+                    res.json(newUser);
+                } else {
+                    res.json(user);
+                }
+
+            });
+    }
+
 
     /**
      * Creates a new user instance
@@ -115,9 +148,30 @@ export default class UserController implements UserControllerI {
      * @param {Response} res Represents response to client, including status
      * on whether updating a user was successful or not
      */
-    updateUser = (req: Request, res: Response) =>
-        UserController.userDao.updateUser(req.params.uid, req.body)
-            .then((status) => res.send(status));
+    updateUser = async (req: Request, res: Response) => {
+
+        let newUser = req.body;
+        let password = null;
+        if(newUser.password!==""){
+            const passwd = newUser.password;
+            password = await bcrypt.hash(passwd,saltRounds);
+        }else{
+            const user = await UserController.userDao.findUserById(newUser._id);
+            password = user.password;
+        }
+
+
+        newUser = {...newUser,password: password};
+
+
+        let update = await UserController.userDao.updateUser(newUser._id,newUser);
+        let updatedUser = await UserController.userDao.findUserById(newUser._id);
+        // @ts-ignore
+        req.session[`profile`] = updatedUser;
+        // @ts-ignore
+        res.json(updatedUser);
+    }
+
 
     /**
      * Removes a user instance from the database
@@ -140,9 +194,16 @@ export default class UserController implements UserControllerI {
         UserController.userDao.deleteAllUsers()
             .then((status)=>res.send(status))
 
+    /**
+     * Removes user instances from the database by username. Useful for testing
+     * @param {Request} req Represents request from client
+     * @param {Response} res Represents response to client, including status
+     * on whether deleting user was successful or not
+     */
     deleteUsersByUsername = (req: Request, res: Response) =>
         UserController.userDao.deleteUsersByUsername(req.params.username)
             .then(status => res.send(status));
+
 
 
 

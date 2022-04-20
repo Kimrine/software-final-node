@@ -4,6 +4,9 @@
 import FollowControllerI from "../interfaces/follows/FollowControllerI";
 import FollowDao from "../daos/FollowDao";
 import {Express, Request, Response} from "express";
+import UserDao from "../daos/UserDao";
+import UserService from "../services/userService";
+import User from "../models/users/User";
 
 /**
  * @class FollowController Implements RESTful Web service API for follows resource.
@@ -20,7 +23,8 @@ import {Express, Request, Response} from "express";
  *     <li>DELETE /api/users/:uid1/unfollows/:uid2 to record that a user
  *     no longer follows another user</li>
  *     <li> DELETE /api/users/:uid1/removesfollower/:uid2 to record that a user remove another user
- *     from his follwers
+ *     from his follwers</li>
+ *     <li> PUT
  *     * </ul>
  * @property {FollowDao} followDao Singleton DAO implementing follow CRUD operations
  * @property {FollowController} followController Singleton controller implementing
@@ -29,6 +33,8 @@ import {Express, Request, Response} from "express";
 export default class FollowController implements FollowControllerI {
 
     private static followDao: FollowDao = FollowDao.getInstance();
+    private static userDao: UserDao = UserDao.getInstance();
+    private static userSerive: UserService = UserService.getInstance();
     private static followController: FollowController | null = null;
 
     /**
@@ -45,11 +51,14 @@ export default class FollowController implements FollowControllerI {
             app.get("/api/users/:uid/followings", FollowController.followController.findAllUsersThatUserFollowing);
             app.get("/api/users/:uid/followers", FollowController.followController.findAllUsersThatFollowingUser);
             app.get("/api/follows", FollowController.followController.findAllFollow);
+            app.get("/api/users/follow/:uid/whotofollow",
+                FollowController.followController.findUserToFollow);
+
 
             app.post("/api/users/:uid1/follows/:uid2", FollowController.followController.userFollowsUser);
             app.delete("/api/users/:uid1/unfollows/:uid2", FollowController.followController.userUnfollowsUser);
             app.delete("/api/users/:uid1/removesFollower/:uid2", FollowController.followController.userRemoveFollower);
-
+            app.put("/api/users/:uid1/follows/:uid2",FollowController.followController.userTogglesUserFollows);
         }
 
         return FollowController.followController;
@@ -77,9 +86,27 @@ export default class FollowController implements FollowControllerI {
      * @param {Response} res Represents response to client, including the
      * body formatted as JSON arrays containing the users objects
      */
-    findAllUsersThatFollowingUser = (req: Request, res: Response) =>
-        FollowController.followDao.findAllUsersThatFollowingUser(req.params.uid)
-            .then(follows => res.json(follows));
+    findAllUsersThatFollowingUser = async (req: Request, res: Response) => {
+
+        let username = req.params.uid;
+        let user = await FollowController.userDao.findUserByUsername(username);
+        let uid = user._id;
+        // @ts-ignore
+        let curUid = req.session['profile'] ?
+            // @ts-ignore
+            req.session['profile']._id : uid;
+
+        FollowController.followDao.findAllUsersThatFollowingUser(uid)
+            .then(async follows => {
+                const followersNonNullUser = follows.filter(follow => follow.userFollowing);
+                const userFromFollowers = followersNonNullUser.map(follow => follow.userFollowing);
+                const getTuits = await FollowController.userSerive
+                    .getAllUserFollowing(curUid,userFromFollowers);
+                res.json(getTuits)
+            });
+
+    }
+
 
 
     /**
@@ -89,9 +116,29 @@ export default class FollowController implements FollowControllerI {
      * @param {Response} res Represents response to client, including the
      * body formatted as JSON arrays containing the users objects
      */
-    findAllUsersThatUserFollowing = (req: Request, res: Response) =>
-        FollowController.followDao.findAllUsersThatUserFollowing(req.params.uid)
-            .then(follows => res.json(follows));
+    findAllUsersThatUserFollowing = async (req: Request, res: Response) => {
+
+        let username = req.params.uid;
+        let user = await FollowController.userDao.findUserByUsername(username);
+        let uid = user._id;
+        // @ts-ignore
+        let curUid = req.session['profile'] !==undefined ?
+            // @ts-ignore
+            req.session['profile']._id : uid;
+
+
+        FollowController.followDao.findAllUsersThatUserFollowing(uid)
+            .then(async (follows) => {
+                const followingNonNullUser = follows.filter(follow => follow.userFollowed);
+                const userFromFollowing = followingNonNullUser.map(follow => follow.userFollowed);
+                const getTuits = await FollowController.userSerive
+                    .getAllUserFollowing(curUid, userFromFollowing);
+                res.json(getTuits)
+            });
+
+
+    }
+
 
     /**
      * Create a new follow with given two users.
@@ -131,5 +178,71 @@ export default class FollowController implements FollowControllerI {
             .then(status => res.json(status));
 
 
+    /**
+     *
+     * User follow or unfollow a user
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is liking the tuit
+     * and the tuit being liked
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new likes that was inserted in the
+     * database
+     */
+    userTogglesUserFollows = async (req:Request,res:Response) => {
+
+        const followDao = FollowController.followDao;
+        const userDao = FollowController.userDao;
+
+        const uid1 = req.params.uid1;
+        const uid2 = req.params.uid2;
+
+        try{
+            const userAlreadyFollowedUser = await followDao.findUserFollowUser(uid1,uid2);
+            const howManyFollowing = await followDao.countHowManyFollowings(uid1);
+            const howManyFollowers = await followDao.countHowManyFollowers(uid2);
+            const user1 = await userDao.findUserById(uid1);
+            const user2 = await userDao.findUserById(uid2);
+
+            if(userAlreadyFollowedUser){
+                await followDao.userUnfollowsUser(uid1,uid2);
+                user1.followings = howManyFollowing - 1;
+                user2.followers = howManyFollowers - 1;
+
+            }else{
+                await followDao.userFollowsUser(uid1,uid2);
+                user1.followings = howManyFollowing + 1;
+                user2.followers = howManyFollowers + 1;
+            }
+
+            console.log("implement user follow");
+            await userDao.updateUser(uid1,user1);
+            await userDao.updateUser(uid2,user2);
+            res.sendStatus(200);
+
+        }catch (e){
+            res.sendStatus(404);
+        }
+    }
+
+    /**
+     * Retrieves all users that user didn't follow
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is liking the tuit
+     * and the tuit being liked
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new likes that was inserted in the
+     * database
+     */
+    findUserToFollow = (req: Request, res: Response) => {
+
+        const uid = req.params.uid;
+
+            FollowController.userDao.findAllUsers()
+                .then(async (users:User[]) => {
+                    const newUsers = await FollowController.userSerive.findUsersToFollow(uid,users);
+                    res.json(newUsers);
+                });
+
+    }
 }
 

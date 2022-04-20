@@ -2,8 +2,10 @@
  * @file Tuit data model
  */
 import User from "../users/User";
-import mongoose from "mongoose";
+import mongoose, {Schema, Types} from "mongoose";
 import Stats from "./Stats";
+
+
 
 /**
  * @typedef Tuit Represents tuits posted on Tuiter
@@ -17,4 +19,6 @@ export default interface Tuit {
     postedBy?: User;
     postedOn: Date;
     stats: Stats;
+    image?: Array<string>;
+    youtube?: string;
 }

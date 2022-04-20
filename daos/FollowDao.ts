@@ -84,4 +84,29 @@ export default class FollowDao implements FollowDaoI {
         FollowModel.deleteOne({userFollowed: uid1, userFollowing: uid2});
 
 
+    /**
+     * Check follow instance is exist
+     * @param {string} tid Tuit's primary key
+     * @param {string} uid User's primary key
+     * @returns Promise To be notified when find the like record
+     */
+    findUserFollowUser = async (uid1: string, uid2: string): Promise<any> =>
+        FollowModel.findOne({userFollowed: uid2, userFollowing: uid1});
+
+    /**
+     * Count the user have how many followers
+     * @param {string} tid Tuit's primary key
+     * @returns Promise To be notified when count finish
+     */
+    countHowManyFollowers = async (uid:string): Promise<any> =>
+        FollowModel.count({userFollowed:uid});
+
+    /**
+     * Count have how many users the user is following
+     * @param {string} tid Tuit's primary key
+     * @returns Promise To be notified when count finish
+     */
+    countHowManyFollowings = async (uid:string): Promise<any> =>
+        FollowModel.count({userFollowing:uid});
+
 }

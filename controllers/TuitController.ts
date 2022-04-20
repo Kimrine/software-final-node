@@ -46,6 +46,7 @@ export default class TuitController implements TuitControllerI {
             app.get("/api/tuits", TuitController.tuitController.findAllTuits);
             app.get("/api/users/:uid/tuits", TuitController.tuitController.findTuitByUser);
             app.get("/api/tuits/:tid", TuitController.tuitController.findTuitById);
+            app.get("/api/tuits/:uid/followTuits", TuitController.tuitController.findTuitsByFollow);
             app.post("/api/users/:uid/tuits", TuitController.tuitController.createTuitByUser);
             app.put("/api/tuits/:tid", TuitController.tuitController.updateTuit);
             app.delete("/api/tuits/:tid", TuitController.tuitController.deleteTuit);
@@ -66,9 +67,9 @@ export default class TuitController implements TuitControllerI {
      * body formatted as JSON arrays containing the tuit objects
      */
     findAllTuits = (req: Request, res: Response) => {
-
         // @ts-ignore
         const profile = req.session['profile'];
+
         if(profile){
             //if already login in
             const userId = profile._id;
@@ -83,8 +84,34 @@ export default class TuitController implements TuitControllerI {
             TuitController.tuitDao.findAllTuits()
                 .then((tuits: Tuit[]) => res.json(tuits));
         }
+    }
+    /**
+     * Retrieves all tuits that posted by user's following and self from the database and returns
+     * an array of tuits.
+     * @param {Request} req Represents request from client
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON arrays containing the tuit objects
+     */
+    findTuitsByFollow = (req:Request,res:Response) => {
 
+        // @ts-ignore
+        const profile = req.session['profile'];
+        if(profile){
+            TuitController.tuitDao.findAllTuits()
+                .then(async (tuits:Tuit[])=>{
+                    const userId = profile._id;
+                    const markedTuits = await TuitController.tuitService
+                        .getTuitsForLikeDislikeByUser(userId,tuits);
+                    const followTuits = await TuitController.tuitService
+                        .getTuitsForFollow(userId,markedTuits);
 
+                    res.json(followTuits);
+                })
+        }else{
+            //not login in
+            TuitController.tuitDao.findAllTuits()
+                .then((tuits: Tuit[]) => res.json(tuits));
+        }
 
     }
 
