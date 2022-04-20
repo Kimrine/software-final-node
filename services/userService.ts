@@ -4,7 +4,6 @@
 
 import User from "../models/users/User";
 import FollowDao from "../daos/FollowDao";
-import UserController from "../controllers/UserController";
 import UserDao from "../daos/UserDao";
 
 export default class UserService{
@@ -28,7 +27,13 @@ export default class UserService{
     private constructor() {
     }
 
-    getSingleFollowedUser = async (uid1:any,user:any): Promise<any> =>{
+
+    /**
+     * Check whether user1 already follow another user
+     * @param uid1 the id of user1
+     * @param user the object of the another user
+     */
+    public getSingleFollowedUser = async (uid1:any,user:any): Promise<any> =>{
 
         let isFollow = null;
         if(user!==null){
@@ -47,7 +52,12 @@ export default class UserService{
 
     }
 
-    getAllUserFollowing = async (uid1:any,users:User[]): Promise<any[]> => {
+    /**
+     * Add followedByMe property to all users
+     * @param uid1 the id of user1
+     * @param users user list
+     */
+    public getAllUserFollowing = async (uid1:any,users:User[]): Promise<any[]> => {
 
         let findFollowsPromises: any[] = [];
         users.forEach((user:any)=>{
@@ -80,7 +90,12 @@ export default class UserService{
     }
 
 
-    findUsersToFollow = async (uid: any,users:User[]): Promise<any[]>=> {
+    /**
+     *  Get users that the user didn't follow before
+     * @param uid the id of user
+     * @param users user list
+     */
+    public findUsersToFollow = async (uid: any,users:User[]): Promise<any[]>=> {
 
         let findFollowsPromises: any[] = [];
 
@@ -106,10 +121,9 @@ export default class UserService{
                 newU = {...newU,followedByMe: false};
             }
 
-
-
             return newU;
         })
+
 
         let newUsers = getUsers.filter((user)=>user.followedByMe===false);
         newUsers = newUsers.filter((user)=>user._id!=uid);
