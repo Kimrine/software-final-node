@@ -220,6 +220,13 @@ export default class TuitController implements TuitControllerI {
             .then((status) => res.json(status));
 
 
+    /**
+     * Retrieves all tuits with medias from the database for a particular user and returns
+     * an array of tuits.
+     * @param {Request} req Represents request from client
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON arrays containing the tuit objects
+     */
     findAllTuitsHaveMediasByUser = (req: Request, res: Response) => {
         const uid = req.params.uid;
         // @ts-ignore
