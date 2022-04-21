@@ -26,6 +26,11 @@ export default class TuitService{
     private constructor() {
     }
 
+    /**
+     * Get tuits with likeByMe and dislikeByMe by a specific user.
+     * @param uid the user id
+     * @param tuits the tuits will be modify
+     */
     public getTuitsForLikeDislikeByUser = async (uid:any,tuits:Tuit[]): Promise<any[]> =>{
         let findLikesPromises: any[] = []
         let findDislikesPromises: any[] = []
@@ -76,6 +81,11 @@ export default class TuitService{
     }
 
 
+    /***
+     * Get tuits that posted by user I'm following.
+     * @param uid the id of specific user
+     * @param tuits the all tuits from database
+     */
     public getTuitsForFollow = async (uid:any,tuits:Tuit[]): Promise<any[]> =>{
 
         const users = await TuitService.followDao.findAllUsersThatUserFollowing(uid);
