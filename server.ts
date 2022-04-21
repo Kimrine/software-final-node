@@ -37,6 +37,7 @@ app.use(cors({
     origin: 'http://localhost:3000'
 }));
 
+
 const SECRET = 'process.env.SECRET';
 let sess = {
     secret: SECRET,
@@ -53,7 +54,8 @@ if (process.env.ENVIRONMENT === 'PRODUCTION') {
 }
 
 app.use(session(sess))
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb'}));
 
 const userController = UserController.getInstance(app);
 const tuitController = TuitController.getInstance(app);
@@ -70,6 +72,7 @@ app.get('/hello', (req, res) =>
 app.get('/add/:a/:b', (req, res) => {
     res.send(req.params.a + req.params.b);
 })
+
 
 SessionController(app);
 AuthenticationController(app);
