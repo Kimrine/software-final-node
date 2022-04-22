@@ -227,11 +227,25 @@ export default class TuitController implements TuitControllerI {
      * @param {Response} res Represents response to client, including the
      * body formatted as JSON arrays containing the tuit objects
      */
-    findAllTuitsHaveMediasByUser = (req: Request, res: Response) => {
-        const uid = req.params.uid;
+    findAllTuitsHaveMediasByUser = async (req: Request, res: Response) => {
         // @ts-ignore
-        const profile = req.session['profile'];
-        const userId = uid === "me" && profile ? profile._id : uid;
+        let userId = req.params.uid === req.session['profile'].username && req.session['profile'] ?
+            // @ts-ignore
+            req.session['profile']._id : req.params.uid;
+
+        let flag = false;
+        // @ts-ignore
+        if (req.params.uid === req.session['profile'].username) {
+            flag = true;
+        }
+        const userDao = UserDao.getInstance()
+
+        if (!flag) {
+            let user = await userDao.findUserByUsername(userId);
+            userId = user._id;
+        }
+
+
         TuitController.tuitDao.findAllTuitsHaveMediasByUser(userId)
             .then(async (tuits: Tuit[]) => {
                 const getTuits = await TuitController.tuitService
