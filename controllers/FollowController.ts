@@ -121,6 +121,7 @@ export default class FollowController implements FollowControllerI {
         let username = req.params.uid;
         let user = await FollowController.userDao.findUserByUsername(username);
         let uid = user._id;
+
         // @ts-ignore
         let curUid = req.session['profile'] !==undefined ?
             // @ts-ignore
@@ -135,8 +136,6 @@ export default class FollowController implements FollowControllerI {
                     .getAllUserFollowing(curUid, userFromFollowing);
                 res.json(getTuits)
             });
-
-
     }
 
 
@@ -214,7 +213,6 @@ export default class FollowController implements FollowControllerI {
                 user2.followers = howManyFollowers + 1;
             }
 
-            console.log("implement user follow");
             await userDao.updateUser(uid1,user1);
             await userDao.updateUser(uid2,user2);
             res.sendStatus(200);

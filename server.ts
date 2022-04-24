@@ -34,7 +34,8 @@ mongoose.connect('mongodb+srv://kimrine:kimrine123@cluster0.x1j4c.mongodb.net/fi
 const app = express();
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:3000'
+    origin: true
+    //origin: 'http://localhost:3000'
 }));
 
 
@@ -53,11 +54,8 @@ if (process.env.ENVIRONMENT === 'PRODUCTION') {
     sess.cookie.secure = true // serve secure cookies
 }
 
-app.use(express.json({limit: '10mb'}));
-app.use(express.urlencoded({limit: '10mb'}));
 app.use(session(sess))
-app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({limit: '50mb'}));
+app.use(express.json({limit: '10mb'}));
 
 const userController = UserController.getInstance(app);
 const tuitController = TuitController.getInstance(app);

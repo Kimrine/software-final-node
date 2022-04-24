@@ -115,7 +115,6 @@ export default class UserController implements UserControllerI {
             .then(async (user: User) => {
 
                 if (flag) {
-                    console.log(uid1+" : "+user);
                     const newUser = await UserController.userService
                         .getSingleFollowedUser(uid1,user);
 
